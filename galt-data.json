@@ -1,0 +1,13 @@
+{
+  "metrics": {
+    "inf": 1.8,
+    "czk": 25.30,
+    "nrg": 110
+  },
+  "news": [
+    {
+      "title": "Galt Engine Online",
+      "sum": "System synchronization successful. Data stream established."
+    }
+  ]
+}
