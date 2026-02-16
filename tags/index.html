@@ -95,7 +95,7 @@ async function bootEngine() {
 
     try {
         // STAŽENÍ REÁLNÝCH DAT (přidáváme časové razítko, aby se předešlo mezipaměti)
-        const response = await fetch('/contents/galt-data.json?v=' + Date.now());
+        const response = await fetch('galt-data.json?v=' + Date.now());
         if (!response.ok) throw new Error('DATA_UNAVAILABLE');
         const data = await response.json();
 
