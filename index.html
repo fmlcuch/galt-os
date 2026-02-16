@@ -1,0 +1,134 @@
+<!DOCTYPE html><html lang="cs"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>homepage - whoisjohngalt</title><meta name="description" content="[ARES_ENGINE] // SEC: CZ_EU ● SYS_ACTIVE 00:00:00Z INFLACE EU (HICP) --.- % KURZ CZK/EUR --.-- PRŮM. CENA ENERGIE --- € //_OPERATIONAL_LOG_//"><meta name="generator" content="Publii Open-Source CMS for Static Site"><link rel="canonical" href="https://whoisjohngalt.eu/"><link rel="alternate" type="application/atom+xml" href="https://whoisjohngalt.eu/feed.xml" title="whoisjohngalt - RSS"><link rel="alternate" type="application/json" href="https://whoisjohngalt.eu/feed.json" title="whoisjohngalt - JSON"><meta property="og:title" content="homepage"><meta property="og:site_name" content="whoisjohngalt"><meta property="og:description" content="[ARES_ENGINE] // SEC: CZ_EU ● SYS_ACTIVE 00:00:00Z INFLACE EU (HICP) --.- % KURZ CZK/EUR --.-- PRŮM. CENA ENERGIE --- € //_OPERATIONAL_LOG_//"><meta property="og:url" content="https://whoisjohngalt.eu/"><meta property="og:type" content="article"><link rel="stylesheet" href="https://whoisjohngalt.eu/assets/css/style.css?v=1558ece3525af0746f363e3db05abb42"><script type="application/ld+json">{"@context":"http://schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https://whoisjohngalt.eu/"},"headline":"homepage","datePublished":"2026-02-16T14:54+01:00","dateModified":"2026-02-16T16:49+01:00","description":"[ARES_ENGINE] // SEC: CZ_EU ● SYS_ACTIVE 00:00:00Z INFLACE EU (HICP) --.- % KURZ CZK/EUR --.-- PRŮM. CENA ENERGIE --- € //_OPERATIONAL_LOG_//","author":{"@type":"Person","name":"František Mlčůch","url":"https://whoisjohngalt.eu/authors/frantisek-mlcuch/"},"publisher":{"@type":"Organization","name":"František Mlčůch"}}</script><noscript><style>img[loading] {
+                    opacity: 1;
+                }</style></noscript><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=B612+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet"></head><body class="page-template"><header class="top js-header"><a class="logo" href="https://whoisjohngalt.eu/">whoisjohngalt</a></header><main class="page"><div class="content"><div class="hero"><div class="hero__content"><div class="wrapper"><h1>homepage</h1></div></div></div><div class="wrapper content__entry content__entry--nospace"><div><div class="galt-os"><div class="galt-panel"><div class="galt-inner"><div class="galt-header"><span>[ARES_ENGINE] // SEC: CZ_EU</span> <span class="galt-blink">● SYS_ACTIVE</span> <span id="galt-clock">00:00:00Z</span></div><div class="galt-metrics"><div class="metric-box"><div class="metric-label">INFLACE EU (HICP)</div><div class="metric-value" id="met-inf">--.- %</div></div><div class="metric-box"><div class="metric-label">KURZ CZK/EUR</div><div class="metric-value" id="met-czk">--.--</div></div><div class="metric-box" style="border-color: var(--hud-alert);"><div class="metric-label" style="color: var(--hud-alert);">PRŮM. CENA ENERGIE</div><div class="metric-value" style="color: var(--hud-alert); text-shadow: 0 0 10px rgba(255,170,0,0.3);" id="met-nrg">--- €</div></div></div><div class="galt-feed-title"><span>//_OPERATIONAL_LOG_//</span></div><div id="galt-feed"><div class="log-item" id="boot-msg"><div class="log-title cursor" id="boot-text"></div></div></div></div></div></div></div></div></div></main><footer class="footer"><div class="wrapper"><div class="footer__copyright">Powered by Publii</div><button id="backToTop" class="footer__bttop" aria-label="Back to top" title="Back to top"><svg width="20" height="20"><use xlink:href="https://whoisjohngalt.eu/assets/svg/svg-map.svg#toparrow"/></svg></button></div></footer><script defer="defer" src="https://whoisjohngalt.eu/assets/js/scripts.min.js?v=d0fc1030089a37f93a2d51bf6d07565c"></script><script>window.publiiThemeMenuConfig={mobileMenuMode:'sidebar',animationSpeed:300,submenuWidth: 'auto',doubleClickTime:500,mobileMenuExpandableSubmenus:true,relatedContainerForOverlayMenuSelector:'.top'};</script><script>var images = document.querySelectorAll('img[loading]');
+        for (var i = 0; i < images.length; i++) {
+            if (images[i].complete) {
+                images[i].classList.add('is-loaded');
+            } else {
+                images[i].addEventListener('load', function () {
+                    this.classList.add('is-loaded');
+                }, false);
+            }
+        }</script><script>// 1. MECHANICKÝ TYPEWRITER (Trhavější psaní s drobnou náhodností)
+async function typeWriter(elementId, text) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    el.innerHTML = '';
+    for (let i = 0; i < text.length; i++) {
+        el.innerHTML += text.charAt(i);
+        // Náhodná prodleva 10-40ms simuluje starý buffer
+        const speed = Math.floor(Math.random() * 30) + 10;
+        await new Promise(r => setTimeout(r, speed));
+    }
+}
+
+// 2. DYNAMICKÉ HODINY (ČESKÝ ČAS)
+function updateClock() {
+    const clockEl = document.getElementById('galt-clock');
+    if (!clockEl) return;
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('cs-CZ', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+    });
+    const isDST = now.getTimezoneOffset() < -60; 
+    clockEl.innerText = timeString + (isDST ? ' CEST' : ' CET');
+}
+
+// 3. TRHAVÉ NASKAKOVÁNÍ ČÍSEL (Hardware style)
+function animateValue(id, start, end, duration, suffix = "") {
+    const obj = document.getElementById(id);
+    if (!obj) return;
+    
+    // Používáme setInterval místo plynulého requestAnimationFrame
+    const frameRate = 40; // Aktualizace každých 40ms = viditelné "přeskakování"
+    const totalFrames = Math.round(duration / frameRate);
+    let frame = 0;
+
+    const counter = setInterval(() => {
+        frame++;
+        // Křivka ease-out, ale trhaná
+        const progress = 1 - Math.pow(1 - (frame / totalFrames), 3);
+        const current = start + (end - start) * progress;
+        
+        obj.innerHTML = current.toFixed(1) + suffix;
+
+        if (frame >= totalFrames) {
+            clearInterval(counter);
+            obj.innerHTML = end.toFixed(1) + suffix; // Finální hodnota natvrdo
+        }
+    }, frameRate);
+}
+
+// 4. MIKRO-SEKUNDOVÝ GLITCH PANELU (JS)
+function triggerInterference() {
+    const panel = document.querySelector('.galt-panel');
+    if (!panel) return;
+
+    // Náhodně mezi 5 a 15 sekundami
+    const randomTime = Math.random() * 10000 + 5000;
+
+    setTimeout(() => {
+        // Okamžitý aplikovaný inline styl (žádná transition guma tu už v CSS neexistuje)
+        panel.style.transform = `translate(${(Math.random() - 0.5) * 30}px, ${(Math.random() - 0.5) * 10}px)`;
+        panel.style.filter = `hue-rotate(180deg) contrast(3) brightness(1.5)`;
+        
+        // Zpět do normálu za pouhých 40ms! (Oko to jen stěží zachytí)
+        setTimeout(() => {
+            panel.style.transform = 'none';
+            panel.style.filter = 'none';
+            triggerInterference(); // Zacyklení
+        }, 40); 
+        
+    }, randomTime);
+}
+
+// 5. HLAVNÍ BOOT ENGINE
+async function bootEngine() {
+    updateClock();
+    setInterval(updateClock, 1000);
+    triggerInterference();
+
+    const bootText = document.getElementById('boot-text');
+    if (bootText) {
+        await typeWriter('boot-text', '> INITIALIZING SECURE DATA FETCH...');
+    }
+
+    try {
+        // STAŽENÍ REÁLNÝCH DAT (přidáváme časové razítko, aby se předešlo mezipaměti)
+        const response = await fetch('galt-data.json?v=' + Date.now());
+        if (!response.ok) throw new Error('DATA_UNAVAILABLE');
+        const data = await response.json();
+
+        await new Promise(r => setTimeout(r, 600));
+
+        // Animace stažených metrik
+        animateValue('met-inf', 0, data.metrics.inf, 1000, " %");
+        animateValue('met-czk', 20, data.metrics.czk, 1200, "");
+        animateValue('met-nrg', 0, data.metrics.nrg, 1500, " €");
+
+        const feed = document.getElementById('galt-feed');
+        if (!feed) return;
+        feed.innerHTML = ''; 
+
+        for (const [index, item] of data.news.entries()) {
+            const div = document.createElement('div');
+            div.className = 'log-item';
+            const tId = `t-${index}`, sId = `s-${index}`;
+            div.innerHTML = `
+                <div class="log-meta">DATA_STREAM // ID_${Math.random().toString(16).slice(2,6).toUpperCase()}</div>
+                <div class="log-title cursor" id="${tId}"></div>
+                <div class="log-summary" id="${sId}"></div>
+            `;
+            feed.appendChild(div);
+            
+            await typeWriter(tId, `> ${item.title}`);
+            document.getElementById(tId).classList.remove('cursor');
+            document.getElementById(sId).classList.add('cursor');
+            await typeWriter(sId, item.sum);
+            document.getElementById(sId).classList.remove('cursor');
+        }
+    } catch (err) {
+        if (bootText) bootText.innerHTML = `> <span style="color:red">ERROR: ${err.message}</span>`;
+    }
+}
+document.addEventListener('DOMContentLoaded', bootEngine);</script></body></html>
