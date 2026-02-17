@@ -10,23 +10,47 @@
                 }, false);
             }
         }</script><script>/**
- * GALT_OS_TERMINAL_ENGINE v3.0 (Master Version)
+ * GALT_OS_TERMINAL_ENGINE v3.1 (Master Version - Performance Optimized)
  * Status: OPERATIONAL
+ * Update: Abortable Typewriter + Quick Reveal on Click
  */
 
-// 1. MECHANICKÝ TYPEWRITER (Vykreslování textu)
+// Globální stavy pro kontrolu animací
+let allNews = [];
+let currentIndex = 0;
+let isTyping = false;
+let skipRequested = false; // Příznak pro okamžité vypsání textu
+
+// 1. VYLEPŠENÝ TYPEWRITER (Podporuje okamžité ukončení i přeskočení)
 async function typeWriter(elementId, text, minSpeed = 10, maxSpeed = 30) {
     const el = document.getElementById(elementId);
     if (!el || !text) return;
     el.innerHTML = '';
+    
     for (let i = 0; i < text.length; i++) {
+        // Pokud byla vyžádána nová zpráva, úplně zastavíme tuto smyčku
+        if (!isTyping) break; 
+        
+        // Pokud uživatel klikl pro okamžité vypsání, vysypeme zbytek textu naráz
+        if (skipRequested) {
+            el.innerHTML = text;
+            break;
+        }
+
         el.innerHTML += text.charAt(i);
         const speed = Math.floor(Math.random() * (maxSpeed - minSpeed)) + minSpeed;
         await new Promise(r => setTimeout(r, speed));
     }
 }
 
-// 2. DYNAMICKÉ HODINY (Reálný čas v terminálu)
+// 2. QUICK REVEAL - Po kliknutí na panel okamžitě dokončí výpis
+function requestQuickReveal() {
+    if (isTyping) {
+        skipRequested = true;
+    }
+}
+
+// 3. DYNAMICKÉ HODINY
 function updateClock() {
     const clockEl = document.getElementById('galt-clock');
     if (!clockEl) return;
@@ -36,7 +60,7 @@ function updateClock() {
     clockEl.innerText = timeString + (isDST ? ' CEST' : ' CET');
 }
 
-// 3. TRHAVÉ NASKAKOVÁNÍ ČÍSEL (Pro horní metriky)
+// 4. ANIMACE METRIK
 function animateValue(id, start, end, duration, suffix = "") {
     const obj = document.getElementById(id);
     if (!obj) return;
@@ -49,66 +73,55 @@ function animateValue(id, start, end, duration, suffix = "") {
         const progress = 1 - Math.pow(1 - (frame / totalFrames), 3);
         const current = start + (end - start) * progress;
         
-        // Změna: Pouze energie (met-nrg) zůstává celým číslem. 
-        // CZK (kurz) a inflace teď budou mít desetinná místa.
         if (id === 'met-nrg') {
             obj.innerHTML = Math.round(current) + suffix;
         } else {
-            obj.innerHTML = current.toFixed(2) + suffix; // .toFixed(2) pro hezčí kurz měny
+            obj.innerHTML = current.toFixed(2) + suffix; 
         }
 
         if (frame >= totalFrames) {
             clearInterval(counter);
-            if (id === 'met-nrg') {
-                obj.innerHTML = Math.round(end) + suffix;
-            } else {
-                obj.innerHTML = end.toFixed(2) + suffix; 
-            }
+            obj.innerHTML = (id === 'met-nrg' ? Math.round(end) : end.toFixed(2)) + suffix; 
         }
     }, frameRate);
 }
 
-// 4. JEDNORÁZOVÝ GLITCH PANELU (Aktivuje se při přepnutí zprávy)
+// 5. VIZUÁLNÍ RUŠENÍ (Glitch)
 function triggerInterference() {
     const panel = document.querySelector('.galt-panel');
     if (!panel) return;
-    
-    // 1. Přidáme CSS třídu, která spustí tvou @keyframes animaci
     panel.classList.add('panel-glitch-active');
-    
-    // 2. Po skončení animace (400ms) třídu zase odebereme
     setTimeout(() => {
         panel.classList.remove('panel-glitch-active');
     }, 400); 
 }
-    
-// 5. LOGIKA OVLÁDÁNÍ NOVINEK
-let allNews = [];
-let currentIndex = 0;
-let isTyping = false;
 
+// 6. LOGIKA OVLÁDÁNÍ NOVINEK
 async function displayNews(index) {
-    if (isTyping || !allNews[index]) return;
+    // Pokud se zrovna píše, "isTyping = false" zastaví běžící typeWriter smyčky
+    if (isTyping) {
+        isTyping = false;
+        await new Promise(r => setTimeout(r, 20)); // Krátká pauza na doběhnutí async
+    }
     
-    // Spuštění vizuálního rušení při načítání
+    if (!allNews[index]) return;
+    
     triggerInterference(); 
     isTyping = true;
+    skipRequested = false; // Resetujeme požadavek na přeskočení pro novou zprávu
 
     const item = allNews[index];
     const feed = document.getElementById('galt-feed');
     const navInfo = document.getElementById('nav-info');
-    
-    // Zajištění funkčního URL i když se jmenuje link nebo url
     const externalLink = item.url || item.link || '#';
     
-    // Aktualizace stavového počitadla
     if (navInfo) navInfo.innerText = `LOG_ID: ${index + 1}/${allNews.length}`;
 
-    // Vyčištění a příprava struktury pro Typewriter
+    // Struktura obsahuje onclick="requestQuickReveal()", aby šlo kliknout kamkoliv do obsahu
     feed.innerHTML = `
-      <div class="log-item">
+      <div class="log-item" onclick="requestQuickReveal()" style="cursor: default;">
         <div class="log-header cursor" id="t-active" 
-             onclick="if('${externalLink}' !== '#') window.open('${externalLink}', '_blank')" 
+             onclick="event.stopPropagation(); if('${externalLink}' !== '#') window.open('${externalLink}', '_blank')" 
              style="cursor: pointer; transition: 0.2s;" 
              title="OPEN_ORIGINAL_SOURCE"></div>
         <div class="columns-wrapper">
@@ -120,55 +133,54 @@ async function displayNews(index) {
             <small style="opacity:0.6; color:var(--hud-cyan);">[GALT_DECODED_TRUTH]:</small><br>
             <span id="s-active"></span>
             <div class="prop-meter"><div class="prop-bar" id="p-bar" style="width:0%"></div></div>
-            
-            <div class="prop-label" id="btn-reason" onclick="toggleReasoning()" style="cursor: pointer; transition: 0.2s; margin-top:5px;">
+            <div class="prop-label" id="btn-reason" onclick="event.stopPropagation(); toggleReasoning()" style="cursor: pointer; margin-top:5px;">
               > Propaganda level: ${item.propaganda}% <span style="color:var(--hud-alert); font-size:0.8em; margin-left: 10px; animation: blink 1.5s infinite;">[ANALYZE]</span>
             </div>
             <div id="reason-box" style="display:none; margin-top: 15px; padding: 10px; border-left: 2px solid var(--hud-alert); background: rgba(255, 60, 0, 0.05);">
               <small style="color:var(--hud-alert);">[SYSTEM_ANALYSIS]:</small><br>
               <span id="r-active" style="color: var(--hud-cyan-dim); font-size: 0.9em;"></span>
             </div>
-            </div>
+          </div>
         </div>
       </div>
     `;
 
-    // Sekvenční výpis (Titulek -> Zdroj -> Dekódovaná pravda)
+    // Sekvenční výpis s kontrolou, zda nebyl proces přerušen navigací
     await typeWriter('t-active', `// SUBJECT: ${item.title}`, 10, 20);
+    if (!isTyping) return;
     document.getElementById('t-active').classList.remove('cursor');
     
     await typeWriter('o-active', item.description, 1, 5); 
-    await typeWriter('s-active', item.sum, 5, 15);
+    if (!isTyping) return;
     
-    // Plynulý nárůst ukazatele propagandy
-    setTimeout(() => {
-        const bar = document.getElementById('p-bar');
-        if (bar) bar.style.width = `${item.propaganda}%`;
-    }, 100);
+    await typeWriter('s-active', item.sum, 5, 15);
+    if (!isTyping) return;
+    
+    // Finální update baru (i po případném přeskočení)
+    const bar = document.getElementById('p-bar');
+    if (bar) bar.style.width = `${item.propaganda}%`;
 
     isTyping = false;
 }
 
-// 5.5 FUNKCE PRO VYSVĚTLENÍ PROPAGANDY
+// 7. FUNKCE PRO ANALÝZU (Taktéž podporuje Quick Reveal)
 async function toggleReasoning() {
-    if (isTyping) return;
-    
     const box = document.getElementById('reason-box');
     const content = document.getElementById('r-active');
     const currentItem = allNews[currentIndex];
     const reasonText = (currentItem && currentItem.reason) ? currentItem.reason : "ERR_NO_DATA";
 
     if (box.style.display === 'none') {
+        if (isTyping) isTyping = false;
+        await new Promise(r => setTimeout(r, 10));
+
         box.style.display = 'block';
         triggerInterference();
         isTyping = true;
+        skipRequested = false;
         content.innerHTML = ''; 
         
-        // AUTO-SCROLL: Pošle stránku mírně dolů, aby byla analýza vidět
-        setTimeout(() => {
-            box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 100);
-
+        setTimeout(() => { box.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 100);
         await typeWriter('r-active', reasonText, 5, 20);
         isTyping = false;
     } else {
@@ -177,78 +189,66 @@ async function toggleReasoning() {
     }
 }
 
-// Funkce pro navigaci
+// 8. NAVIGACE (Reaguje okamžitě)
 function nextNews() {
-    if (currentIndex < allNews.length - 1 && !isTyping) {
+    if (currentIndex < allNews.length - 1) {
         currentIndex++;
         displayNews(currentIndex);
     }
 }
 
 function prevNews() {
-    if (currentIndex > 0 && !isTyping) {
+    if (currentIndex > 0) {
         currentIndex--;
         displayNews(currentIndex);
     }
 }
 
-// Mapování klávesových šipek (opraveno pro scrollování)
+// 9. KLÁVESOVÉ ZKRATKY
 document.addEventListener('keydown', (e) => {
-    // Pokud uživatel mačká šipky nahoru/dolů, nebudeme do toho zasahovat
-    if (e.key === "ArrowRight") {
-        e.preventDefault(); // Zabráníme jen bočnímu posunu, pokud by tam byl
-        nextNews();
-    }
-    if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        prevNews();
-    }
+    if (e.key === "ArrowRight") { e.preventDefault(); nextNews(); }
+    if (e.key === "ArrowLeft") { e.preventDefault(); prevNews(); }
 });
 
-// Společné nastavení pro generování obrázku
+// 10. EXPORTY (PNG / SHARE)
 const canvasOptions = {
-    backgroundColor: "#0a1219", // Temné pozadí
-    scale: 2,                  // Vysoké rozlišení
+    backgroundColor: "#0a1219",
+    scale: 2,
     useCORS: true,
     onclone: (clonedDoc) => {
         const clonedPanel = clonedDoc.querySelector('.galt-panel');
         if (clonedPanel) {
-            clonedPanel.style.background = "#0a1219"; // Vynucená tma pro export
+            clonedPanel.style.background = "#0a1219";
             clonedPanel.style.padding = "20px";
             clonedPanel.style.borderRadius = "12px";
         }
     }
 };
 
-// FUNKCE 1: Pouze stažení obrázku (PNG)
 async function downloadImage() {
     const panel = document.querySelector('.galt-panel');
     const btn = event.target;
-    
-    btn.innerText = "[ ARCHIVING... ]";
+    const originalText = btn.innerText;
+    btn.innerText = "[ BUSY... ]";
     triggerInterference();
-
     try {
         const canvas = await html2canvas(panel, canvasOptions);
         const link = document.createElement('a');
         link.download = `GALT_LOG_${currentIndex + 1}.png`;
         link.href = canvas.toDataURL("image/png");
         link.click();
-        btn.innerText = "[ ARCHIVE_DATA ]";
+        btn.innerText = originalText;
     } catch (err) {
-        console.error(err);
         btn.innerText = "[ ERR_ARCHIVE ]";
     }
 }
 
-// FUNKCE 2: Přímé sdílení obrázku s odkazem
 async function shareExfiltration() {
     const panel = document.querySelector('.galt-panel');
     const btn = event.target;
-    
-    btn.innerText = "[ PREPARING... ]";
+    const originalText = btn.innerText;
+    btn.innerText = "[ BUSY... ]";
     triggerInterference();
-
     try {
         const canvas = await html2canvas(panel, canvasOptions);
         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
@@ -260,18 +260,16 @@ async function shareExfiltration() {
                 title: 'GALT OS - DECODED',
                 text: 'Detekována manipulace. Fakta zde: https://whoisjohngalt.cz',
             });
-            btn.innerText = "[ EXFILTRATE_DATA ]";
+            btn.innerText = originalText;
         } else {
-            // Pokud prohlížeč neumí share, aspoň to stáhneme
             downloadImage();
             alert("ACCESS_DENIED: Sdílení souborů není podporováno. Data byla uložena lokálně.");
         }
     } catch (err) {
-        console.error(err);
         btn.innerText = "[ ERR_XFER ]";
     }
 }
-              
+
 function shareToX() {
     const item = allNews[currentIndex];
     const text = encodeURIComponent(`GALT_OS // DEKÓDOVANÁ PRAVDA: ${item.sum} #GaltOS #Truth`);
@@ -283,37 +281,26 @@ function shareToFB() {
     const url = encodeURIComponent("https://whoisjohngalt.cz");
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
 }
-              
-              
-// 6. INITIAL BOOTSTRAP (Spuštění celého systému)
+
+// 11. BOOT ENGINE
 async function bootEngine() {
-    // Spuštění hodin (každou vteřinu)
     updateClock();
     setInterval(updateClock, 1000);
-
     try {
         const response = await fetch('https://gist.githubusercontent.com/fmlcuch/7b5a33c34900352521e5a9b4d3a33d77/raw/galt-data.json?v=' + Date.now());
         if (!response.ok) throw new Error('CONNECTION_LOST');
-        
         const data = await response.json();
         allNews = data.news; 
-
-        // Spuštění animací čísel v horní liště
         if (data.metrics) {
             animateValue('met-inf', 0, data.metrics.inf, 1000, " %");
-            animateValue('met-czk', 20, data.metrics.czk, 1200, "");
+            animateValue('met-czk', 20, data.metrics.czk, 1200, " CZK");
             animateValue('met-nrg', 0, data.metrics.nrg, 1500, " CZK");
         }
-
-        // Automatické zobrazení prvního záznamu po bootu
-        if (allNews.length > 0) {
-            displayNews(0);
-        }
+        if (allNews.length > 0) displayNews(0);
     } catch (err) {
         const feed = document.getElementById('galt-feed');
         if (feed) feed.innerHTML = `> <span style="color:var(--hud-alert)">SYSTEM_ERROR: ${err.message}</span>`;
     }
 }
 
-// Spuštění při načtení stránky
 document.addEventListener('DOMContentLoaded', bootEngine);</script></body></html>
