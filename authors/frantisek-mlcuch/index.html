@@ -287,6 +287,38 @@ function shareToFB() {
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
 }
 
+// 11. HLOUBKOVÁ ANALÝZA (DEEP SCAN) - OPRAVENO!
+function openDeepAnalysis() {
+    // Opraveno: Správný odkaz na globální pole allNews
+    const currentArticle = allNews[currentIndex]; 
+
+    if (currentArticle && currentArticle.deep_report) {
+        const contentDiv = document.getElementById('analysis-content');
+        const overlay = document.getElementById('analysis-overlay');
+
+        // Nahrazení odřádkování z JSONu (\n) za HTML odřádkování (<br>), aby text nebyl slitý
+        const formattedText = currentArticle.deep_report.replace(/\n/g, '<br>');
+
+        // Vložení do overlay okna s trochou "Galt" atmosféry
+        contentDiv.innerHTML = `
+            <div style="color:var(--hud-alert); margin-bottom:15px; font-weight:bold; letter-spacing: 1px;">>>> INITIATING_DEEP_SCAN_DECRYPTION...</div>
+            <div style="color:var(--hud-cyan-dim); font-size:0.85em; margin-bottom:25px; border-bottom: 1px solid rgba(0, 242, 255, 0.2); padding-bottom: 10px;">[DATA_CLEANSED_BY_GALT_ENGINE]</div>
+            <div style="color:var(--text-main); font-size:0.95rem; line-height: 1.6;">${formattedText}</div>
+        `;
+        
+        // Zobrazíme overlay
+        overlay.style.display = 'block';
+        document.body.style.overflow = 'hidden'; // Zamezí scrollování pozadí
+    } else {
+        alert("CRITICAL_ERROR: ANALYSIS_NOT_FOUND or DATA_CORRUPTED");
+    }
+}
+
+function closeAnalysis() {
+    document.getElementById('analysis-overlay').style.display = 'none';
+    document.body.style.overflow = 'auto'; // Vrátí scrollování
+}
+
 // 12. BOOT ENGINE
 async function bootEngine() {
     updateClock();
